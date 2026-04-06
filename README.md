@@ -69,14 +69,16 @@ autovendor uninstall
 
 1. `autovendor install` detects your repo's hooks directory (respects `core.hooksPath` config) and installs thin shell scripts for `post-merge`, `post-checkout`, and `post-rewrite`.
 
-2. Each hook calls `autovendor run <hook-type>`, which:
+2. Each hook first tries the `autovendor` binary on your PATH. If not found, it falls back to `go run github.com/mpartipilo/autovendor@v{version}` — pinned to the exact version that was installed. This means hooks work even on machines without `autovendor` installed (only Go is required).
+
+3. The hook calls `autovendor run <hook-type>`, which:
    - Determines the old and new git refs for the operation
    - Runs `git diff --name-only` to find changed `go.mod`/`go.sum` files
    - For each affected module directory that has a `vendor/` folder, runs `go mod vendor`
 
-3. **Monorepo support:** If your repo has multiple Go modules (e.g., `services/auth/go.mod`, `tools/lint/go.mod`), only the modules whose dependencies changed are re-vendored.
+4. **Monorepo support:** If your repo has multiple Go modules (e.g., `services/auth/go.mod`, `tools/lint/go.mod`), only the modules whose dependencies changed are re-vendored.
 
-4. **Plays nice with existing hooks:** If you already have git hooks, autovendor appends its block (wrapped in `# autovendor:begin/end` markers) without clobbering your existing scripts. Uninstall cleanly removes only the autovendor block.
+5. **Plays nice with existing hooks:** If you already have git hooks, autovendor appends its block (wrapped in `# autovendor:begin/end` markers) without clobbering your existing scripts. Uninstall cleanly removes only the autovendor block.
 
 ## Example output
 
@@ -89,6 +91,16 @@ autovendor: vendor synced in . ✓
 
 - Go (for `go mod vendor`)
 - Git
+
+## Security
+
+The `go run` fallback in each hook is **pinned to the exact version** of autovendor that was used during `autovendor install`. For example, if you install with v1.0.0, the hooks will contain:
+
+```sh
+go run github.com/mpartipilo/autovendor@v1.0.0 run post-merge "$@"
+```
+
+This prevents supply chain attacks — a compromised future version cannot be silently pulled in by your hooks. To upgrade, run `autovendor uninstall && autovendor install` with the new version.
 
 ## FAQ
 
@@ -103,6 +115,13 @@ Yes — it uses `git rev-parse --git-dir` to find the correct hooks location.
 
 **Can I use it alongside other git hook tools (lefthook, husky, pre-commit)?**
 Yes — autovendor wraps its block in markers and appends to existing hooks rather than replacing them.
+
+**How do I upgrade autovendor in an existing repo?**
+Install the new version of autovendor, then re-install the hooks to update the pinned version:
+```sh
+autovendor uninstall
+autovendor install
+```
 
 ## License
 
