@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mpartipilo/autovendor/internal/vendor"
+	"github.com/mpartipilo/autovendor/internal/vendorsync"
 )
 
 // Run handles the `autovendor run <hook-type> [args]` command.
@@ -32,7 +32,7 @@ func Run(args []string) error {
 		return nil
 	}
 
-	mods, err := vendor.ChangedGoMods(repoDir, oldRef, newRef)
+	mods, err := vendorsync.ChangedGoMods(repoDir, oldRef, newRef)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func Run(args []string) error {
 		return nil
 	}
 
-	return vendor.SyncModules(repoDir, mods)
+	return vendorsync.SyncModules(repoDir, mods)
 }
 
 // resolveRefs determines the old and new git refs to compare based on the hook type.
