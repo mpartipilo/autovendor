@@ -1,0 +1,63 @@
+version: 2
+
+project_name: autovendor
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - main: .
+    binary: autovendor
+    ldflags:
+      - -s -w
+      - -X github.com/mpartipilo/autovendor/cmd.Version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+
+release:
+  github:
+    owner: mpartipilo
+    name: autovendor
+  header: |
+    ## Installation
+
+    **Go install (recommended):**
+    ```sh
+    go install github.com/mpartipilo/autovendor@v{{ .Version }}
+    ```
+
+    **Download binary:**
+    Download the archive for your platform below, extract, and place `autovendor` in your PATH.
+  footer: |
+    **Full changelog**: https://github.com/mpartipilo/autovendor/compare/{{ .PreviousTag }}...{{ .Tag }}
