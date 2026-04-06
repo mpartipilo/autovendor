@@ -16,8 +16,24 @@ You have to remember to run `go mod vendor` every time. The Go team has [known a
 
 ## Install
 
+**Homebrew:**
+```sh
+brew install mpartipilo/autovendor/autovendor
+```
+
+**Go install:**
 ```sh
 go install github.com/mpartipilo/autovendor@latest
+```
+
+**mise:**
+```sh
+mise use -g github:mpartipilo/autovendor
+```
+
+**Quick try (no install):**
+```sh
+go run github.com/mpartipilo/autovendor@latest install
 ```
 
 ## Usage

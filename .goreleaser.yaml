@@ -45,6 +45,19 @@ changelog:
       - "^ci:"
       - "^chore:"
 
+brews:
+  - repository:
+      owner: mpartipilo
+      name: homebrew-autovendor
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/mpartipilo/autovendor
+    description: Automatic Go vendor sync after git operations
+    license: MIT
+    install: |
+      bin.install "autovendor"
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/autovendor version")
+
 release:
   github:
     owner: mpartipilo
@@ -52,7 +65,12 @@ release:
   header: |
     ## Installation
 
-    **Go install (recommended):**
+    **Homebrew:**
+    ```sh
+    brew install mpartipilo/autovendor/autovendor
+    ```
+
+    **Go install:**
     ```sh
     go install github.com/mpartipilo/autovendor@v{{ .Version }}
     ```
