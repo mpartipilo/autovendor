@@ -25,10 +25,14 @@ func Install(args []string) error {
 	}
 
 	fmt.Printf("Installing autovendor hooks into %s\n", hooksDir)
-	if err := hooks.Install(hooksDir); err != nil {
+	if err := hooks.Install(hooksDir, Version); err != nil {
 		return err
 	}
 
-	fmt.Println("\nDone! Vendor will auto-sync after pull, checkout, and rebase.")
+	if Version != "" && Version != "dev" {
+		fmt.Printf("\nDone! Vendor will auto-sync after pull, checkout, and rebase. (pinned to v%s)\n", Version)
+	} else {
+		fmt.Println("\nDone! Vendor will auto-sync after pull, checkout, and rebase.")
+	}
 	return nil
 }

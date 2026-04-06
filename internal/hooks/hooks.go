@@ -46,14 +46,26 @@ func DetectHooksDir(repoDir string) (string, error) {
 // Install installs all autovendor hook scripts into the given hooks directory.
 // It creates the directory if it doesn't exist.
 // If a hook file already exists, the autovendor block is appended (unless already present).
-func Install(hooksDir string) error {
+// The version parameter pins the `go run` fallback to a specific version (e.g., "0.2.0").
+// If empty or "dev", the fallback uses "@latest".
+func Install(hooksDir, version string) error {
 	if err := os.MkdirAll(hooksDir, 0o755); err != nil {
 		return fmt.Errorf("create hooks dir: %w", err)
 	}
 
+	// Determine the version tag for the go run fallback
+	versionTag := "@latest"
+	if version != "" && version != "dev" {
+		// Ensure the version has a "v" prefix for Go module syntax
+		if !strings.HasPrefix(version, "v") {
+			version = "v" + version
+		}
+		versionTag = "@" + version
+	}
+
 	for _, name := range HookNames {
 		hookPath := filepath.Join(hooksDir, name)
-		if err := installHook(hookPath, name); err != nil {
+		if err := installHook(hookPath, name, versionTag); err != nil {
 			return fmt.Errorf("install %s: %w", name, err)
 		}
 	}
@@ -72,11 +84,14 @@ func Uninstall(hooksDir string) error {
 	return nil
 }
 
-func installHook(hookPath, name string) error {
+func installHook(hookPath, name, versionTag string) error {
 	tmpl, err := Template(name)
 	if err != nil {
 		return fmt.Errorf("read template: %w", err)
 	}
+
+	// Pin the go run fallback to the specific version
+	tmplStr := strings.ReplaceAll(string(tmpl), "@latest", versionTag)
 
 	existing, err := os.ReadFile(hookPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -93,7 +108,7 @@ func installHook(hookPath, name string) error {
 
 	if len(existing) == 0 {
 		// No existing hook — write the full template
-		if err := os.WriteFile(hookPath, tmpl, 0o755); err != nil {
+		if err := os.WriteFile(hookPath, []byte(tmplStr), 0o755); err != nil {
 			return err
 		}
 		fmt.Printf("  %s: installed\n", name)
@@ -101,7 +116,7 @@ func installHook(hookPath, name string) error {
 	}
 
 	// Existing hook — extract only the autovendor block from the template and append it
-	block := extractBlock(string(tmpl))
+	block := extractBlock(tmplStr)
 	content = strings.TrimRight(content, "\n") + "\n\n" + block + "\n"
 	if err := os.WriteFile(hookPath, []byte(content), 0o755); err != nil {
 		return err

@@ -34,7 +34,7 @@ func TestTemplate(t *testing.T) {
 func TestInstallFreshDirectory(t *testing.T) {
 	dir := t.TempDir()
 
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatalf("Install() error: %v", err)
 	}
 
@@ -58,10 +58,10 @@ func TestInstallFreshDirectory(t *testing.T) {
 func TestInstallIdempotent(t *testing.T) {
 	dir := t.TempDir()
 
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatalf("first Install() error: %v", err)
 	}
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatalf("second Install() error: %v", err)
 	}
 
@@ -82,7 +82,7 @@ func TestInstallAppendsToExistingHook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatalf("Install() error: %v", err)
 	}
 
@@ -99,7 +99,7 @@ func TestInstallAppendsToExistingHook(t *testing.T) {
 func TestUninstallRemovesFile(t *testing.T) {
 	dir := t.TempDir()
 
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatal(err)
 	}
 	if err := Uninstall(dir); err != nil {
@@ -123,7 +123,7 @@ func TestUninstallPreservesExistingHook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Install(dir); err != nil {
+	if err := Install(dir, "dev"); err != nil {
 		t.Fatal(err)
 	}
 	if err := Uninstall(dir); err != nil {
@@ -229,5 +229,54 @@ func TestExtractBlockNoMarkers(t *testing.T) {
 	result := extractBlock(content)
 	if result != content {
 		t.Errorf("extractBlock with no markers should return content unchanged")
+	}
+}
+
+func TestInstallPinsVersion(t *testing.T) {
+	dir := t.TempDir()
+
+	if err := Install(dir, "1.2.3"); err != nil {
+		t.Fatalf("Install() error: %v", err)
+	}
+
+	content, _ := os.ReadFile(filepath.Join(dir, "post-merge"))
+	s := string(content)
+	if !strings.Contains(s, "@v1.2.3") {
+		t.Errorf("hook should contain pinned version @v1.2.3, got:\n%s", s)
+	}
+	if strings.Contains(s, "@latest") {
+		t.Error("hook should not contain @latest when version is pinned")
+	}
+}
+
+func TestInstallDevVersionUsesLatest(t *testing.T) {
+	dir := t.TempDir()
+
+	if err := Install(dir, "dev"); err != nil {
+		t.Fatalf("Install() error: %v", err)
+	}
+
+	content, _ := os.ReadFile(filepath.Join(dir, "post-merge"))
+	s := string(content)
+	if !strings.Contains(s, "@latest") {
+		t.Errorf("hook should contain @latest for dev version, got:\n%s", s)
+	}
+}
+
+func TestInstallVersionWithVPrefix(t *testing.T) {
+	dir := t.TempDir()
+
+	if err := Install(dir, "v2.0.0"); err != nil {
+		t.Fatalf("Install() error: %v", err)
+	}
+
+	content, _ := os.ReadFile(filepath.Join(dir, "post-merge"))
+	s := string(content)
+	if !strings.Contains(s, "@v2.0.0") {
+		t.Errorf("hook should contain @v2.0.0, got:\n%s", s)
+	}
+	// Should not double the v prefix
+	if strings.Contains(s, "@vv2.0.0") {
+		t.Error("hook should not have double v prefix")
 	}
 }
