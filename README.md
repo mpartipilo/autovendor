@@ -6,7 +6,7 @@ Automatic `go mod vendor` after git operations. Never run it manually again.
 
 If your Go project uses vendoring, every `git pull`, branch switch, or rebase that changes `go.mod` leaves `vendor/` out of sync. Your IDE breaks with errors like:
 
-```
+```text
 Error loading workspace: packages.Load error: go: inconsistent vendoring
 ```
 
@@ -17,21 +17,32 @@ You have to remember to run `go mod vendor` every time. The Go team has [known a
 ## Install
 
 **Homebrew:**
+
 ```sh
 brew install mpartipilo/autovendor/autovendor
 ```
 
+Or tap once, then use the short name forever:
+
+```sh
+brew tap mpartipilo/autovendor
+brew install autovendor
+```
+
 **Go install:**
+
 ```sh
 go install github.com/mpartipilo/autovendor@latest
 ```
 
 **mise:**
+
 ```sh
 mise use -g github:mpartipilo/autovendor
 ```
 
 **Quick try (no install):**
+
 ```sh
 go run github.com/mpartipilo/autovendor@latest install
 ```
@@ -82,7 +93,7 @@ autovendor uninstall
 
 ## Example output
 
-```
+```text
 autovendor: go.mod changed in ., running go mod vendor...
 autovendor: vendor synced in . ✓
 ```
@@ -118,6 +129,7 @@ Yes — autovendor wraps its block in markers and appends to existing hooks rath
 
 **How do I upgrade autovendor in an existing repo?**
 Install the new version of autovendor, then re-install the hooks to update the pinned version:
+
 ```sh
 autovendor uninstall
 autovendor install
