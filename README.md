@@ -135,6 +135,16 @@ autovendor uninstall
 autovendor install
 ```
 
+## Shell completions
+
+autovendor ships a [`usage-cli`](https://usage.jdx.dev) spec file (`autovendor.usage.kdl`). If you have `usage` installed, you can generate shell completions:
+
+```sh
+usage g completion bash autovendor -f autovendor.usage.kdl > ~/.bash_completions/autovendor.bash
+usage g completion zsh autovendor -f autovendor.usage.kdl > ~/.zsh_completions/_autovendor
+usage g completion fish autovendor -f autovendor.usage.kdl > ~/.config/fish/completions/autovendor.fish
+```
+
 ## License
 
 MIT

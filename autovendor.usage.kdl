@@ -1,0 +1,41 @@
+bin "autovendor"
+name "autovendor"
+about "Automatic Go vendor sync after git operations"
+source_code_link_template "https://github.com/mpartipilo/autovendor"
+
+cmd "install" help="Install git hooks into a Go repository" {
+  arg "[path]" help="Path to the repository (defaults to current directory)" {
+    complete "type" "dir"
+  }
+
+  example "install_cwd" {
+    code "autovendor install"
+    help "Install hooks in current directory"
+  }
+  example "install_path" {
+    code "autovendor install ~/src/myproject"
+    help "Install hooks in a specific repo"
+  }
+}
+
+cmd "uninstall" help="Remove autovendor hooks from a repository" {
+  arg "[path]" help="Path to the repository (defaults to current directory)" {
+    complete "type" "dir"
+  }
+
+  example "uninstall_cwd" {
+    code "autovendor uninstall"
+    help "Remove hooks from current directory"
+  }
+}
+
+cmd "run" help="Run vendor sync (called by git hooks)" hide=true {
+  arg "<hook>" help="Hook type" {
+    choices "post-merge" "post-checkout" "post-rewrite"
+  }
+  arg "[args]" var=true help="Arguments passed by git to the hook"
+}
+
+cmd "version" help="Print version"
+
+cmd "help" help="Show help" hide=true
